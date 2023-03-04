@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  localstack:
+    image: localstack/localstack
+    environment:
+      - DEBUG=${DEBUG-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock" 
+  aws:
+    build: ./aws
+    environment:
+      - LOCALSTACK_HOST=localstack
+    depends_on:
+      - localstack
+    profiles:
+      - devops
+  app:
+    build: ./app
+    environment:
+      - SNS_TOPIC_ARN
+    volumes:
+      - ./app:/var/app
+    depends_on:
+      - localstack
